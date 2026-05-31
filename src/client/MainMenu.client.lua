@@ -77,6 +77,7 @@ local function makeButton(parent, text, height, accentColor)
 	local button = Instance.new("TextButton")
 	button.AutoButtonColor = false
 	button.BackgroundColor3 = colors.panelDeep
+	button.BackgroundTransparency = 0.26
 	button.BorderSizePixel = 0
 	button.Size = UDim2.new(1, 0, 0, height or 46)
 	button.Text = text
@@ -99,6 +100,7 @@ local function makeButton(parent, text, height, accentColor)
 	button.MouseEnter:Connect(function()
 		TweenService:Create(button, TweenInfo.new(0.12), {
 			BackgroundColor3 = Color3.fromRGB(70, 170, 226),
+			BackgroundTransparency = 0.08,
 			TextColor3 = colors.cyan,
 		}):Play()
 	end)
@@ -107,6 +109,7 @@ local function makeButton(parent, text, height, accentColor)
 		if tabButtons[activeTabName] ~= button then
 			TweenService:Create(button, TweenInfo.new(0.12), {
 				BackgroundColor3 = colors.panelDeep,
+				BackgroundTransparency = 0.26,
 				TextColor3 = colors.ivory,
 			}):Play()
 		end
@@ -251,23 +254,12 @@ end
 local function makePanel(parent, name)
 	local panel = Instance.new("Frame")
 	panel.Name = name
-	panel.BackgroundColor3 = colors.panel
+	panel.BackgroundTransparency = 1
 	panel.BorderSizePixel = 0
 	panel.Size = UDim2.new(1, 0, 1, 0)
 	panel.Visible = false
 	panel.Parent = parent
-	addCorner(panel, 6)
-	addStroke(panel, colors.border, 1, 0.15)
-	addPadding(panel, 24, 24, 22, 22)
-
-	local gradient = Instance.new("UIGradient")
-	gradient.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(54, 148, 212)),
-		ColorSequenceKeypoint.new(0.56, Color3.fromRGB(34, 106, 172)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(27, 87, 145)),
-	})
-	gradient.Rotation = 90
-	gradient.Parent = panel
+	addPadding(panel, 64, 64, 96, 46)
 
 	tabs[name] = panel
 	return panel
@@ -540,8 +532,8 @@ newsPanel.AnchorPoint = Vector2.new(1, 0.5)
 newsPanel.BackgroundColor3 = Color3.fromRGB(39, 121, 184)
 newsPanel.BackgroundTransparency = 0.24
 newsPanel.BorderSizePixel = 0
-newsPanel.Position = UDim2.new(0.5, 0, 0.64, 0)
-newsPanel.Size = UDim2.new(0, 360, 0, 230)
+newsPanel.Position = UDim2.new(0.5, 0, 0.655, 0)
+newsPanel.Size = UDim2.new(0, 360, 0, 300)
 newsPanel.Parent = main
 addCorner(newsPanel, 6)
 addStroke(newsPanel, colors.borderSoft, 1, 0.34)
@@ -570,6 +562,7 @@ local newsItems = {
 	"Меню переработано под стиль стратегической карты.",
 	"Загрузка теперь скрывает интерфейс после 100%.",
 	"Следующий этап: игровой HUD и стартовая карта.",
+	"Позже добавим генерацию мира по выбранному сиду.",
 }
 
 for index, text in ipairs(newsItems) do
@@ -577,14 +570,14 @@ for index, text in ipairs(newsItems) do
 	marker.BackgroundColor3 = colors.cyan
 	marker.BackgroundTransparency = 0.12
 	marker.BorderSizePixel = 0
-	marker.Position = UDim2.new(0, 0, 0, 58 + (index - 1) * 50)
+	marker.Position = UDim2.new(0, 0, 0, 62 + (index - 1) * 55)
 	marker.Size = UDim2.fromOffset(6, 6)
 	marker.Parent = newsPanel
 	addCorner(marker, 3)
 
 	local item = makeText(newsPanel, text, 15, colors.muted, Enum.Font.SourceSans)
-	item.Position = UDim2.new(0, 18, 0, 49 + (index - 1) * 50)
-	item.Size = UDim2.new(1, -18, 0, 40)
+	item.Position = UDim2.new(0, 18, 0, 53 + (index - 1) * 55)
+	item.Size = UDim2.new(1, -18, 0, 42)
 	item.TextYAlignment = Enum.TextYAlignment.Top
 end
 
@@ -595,6 +588,29 @@ content.Position = UDim2.new(0, 0, 0, 0)
 content.Size = UDim2.new(1, 0, 1, 0)
 content.Visible = false
 content.Parent = main
+
+local tabDivider = Instance.new("Frame")
+tabDivider.Name = "TabDivider"
+tabDivider.BackgroundColor3 = colors.cyan
+tabDivider.BackgroundTransparency = 0.36
+tabDivider.BorderSizePixel = 0
+tabDivider.AnchorPoint = Vector2.new(0.5, 0.5)
+tabDivider.Position = UDim2.new(0.5, 0, 0.53, 0)
+tabDivider.Size = UDim2.new(0, 2, 0, 462)
+tabDivider.Visible = false
+tabDivider.Parent = main
+
+local tabDividerTop = makeText(main, "▲", 24, colors.cyan, Enum.Font.SourceSansBold, Enum.TextXAlignment.Center)
+tabDividerTop.AnchorPoint = Vector2.new(0.5, 0.5)
+tabDividerTop.Position = UDim2.new(0.5, 0, 0.53, -238)
+tabDividerTop.Size = UDim2.fromOffset(28, 24)
+tabDividerTop.Visible = false
+
+local tabDividerBottom = makeText(main, "▼", 24, colors.cyan, Enum.Font.SourceSansBold, Enum.TextXAlignment.Center)
+tabDividerBottom.AnchorPoint = Vector2.new(0.5, 0.5)
+tabDividerBottom.Position = UDim2.new(0.5, 0, 0.53, 238)
+tabDividerBottom.Size = UDim2.fromOffset(28, 24)
+tabDividerBottom.Visible = false
 
 local footer = makeText(main, "Version 0.1", 13, colors.muted, Enum.Font.SourceSans, Enum.TextXAlignment.Center)
 footer.AnchorPoint = Vector2.new(0, 1)
@@ -632,34 +648,58 @@ for i = 1, 16 do
 	ray.Parent = loadingOverlay
 end
 
-local loadingTitle = makeText(loadingOverlay, "ЗАГРУЗКА КАРТЫ", 42, colors.ivory, Enum.Font.Garamond, Enum.TextXAlignment.Center)
-loadingTitle.AnchorPoint = Vector2.new(0.5, 0.5)
-loadingTitle.Position = UDim2.fromScale(0.5, 0.42)
-loadingTitle.Size = UDim2.new(0, 620, 0, 56)
+local loadingDivider = Instance.new("Frame")
+loadingDivider.BackgroundColor3 = colors.cyan
+loadingDivider.BackgroundTransparency = 1
+loadingDivider.BorderSizePixel = 0
+loadingDivider.AnchorPoint = Vector2.new(0.5, 0.5)
+loadingDivider.Position = UDim2.new(0.5, 0, 0.5, 0)
+loadingDivider.Size = UDim2.new(0, 2, 0, 390)
+loadingDivider.ZIndex = 52
+loadingDivider.Parent = loadingOverlay
+
+local loadingDividerTop = makeText(loadingOverlay, "▲", 24, colors.cyan, Enum.Font.SourceSansBold, Enum.TextXAlignment.Center)
+loadingDividerTop.AnchorPoint = Vector2.new(0.5, 0.5)
+loadingDividerTop.Position = UDim2.new(0.5, 0, 0.5, -202)
+loadingDividerTop.Size = UDim2.fromOffset(28, 24)
+loadingDividerTop.TextTransparency = 1
+loadingDividerTop.ZIndex = 52
+
+local loadingDividerBottom = makeText(loadingOverlay, "▼", 24, colors.cyan, Enum.Font.SourceSansBold, Enum.TextXAlignment.Center)
+loadingDividerBottom.AnchorPoint = Vector2.new(0.5, 0.5)
+loadingDividerBottom.Position = UDim2.new(0.5, 0, 0.5, 202)
+loadingDividerBottom.Size = UDim2.fromOffset(28, 24)
+loadingDividerBottom.TextTransparency = 1
+loadingDividerBottom.ZIndex = 52
+
+local loadingTitle = makeText(loadingOverlay, "ЗАГРУЗКА КАРТЫ", 46, colors.ivory, Enum.Font.Garamond, Enum.TextXAlignment.Right)
+loadingTitle.AnchorPoint = Vector2.new(1, 0.5)
+loadingTitle.Position = UDim2.new(0.5, -14, 0.43, 0)
+loadingTitle.Size = UDim2.new(0, 520, 0, 60)
 loadingTitle.TextTransparency = 1
 loadingTitle.ZIndex = 52
 
-local loadingSubtitle = makeText(loadingOverlay, "Создаём мир для новой цивилизации", 18, colors.muted, Enum.Font.SourceSansSemibold, Enum.TextXAlignment.Center)
-loadingSubtitle.AnchorPoint = Vector2.new(0.5, 0.5)
-loadingSubtitle.Position = UDim2.fromScale(0.5, 0.49)
-loadingSubtitle.Size = UDim2.new(0, 620, 0, 28)
+local loadingSubtitle = makeText(loadingOverlay, "Создаём мир для новой цивилизации", 18, colors.cyan, Enum.Font.SourceSansSemibold, Enum.TextXAlignment.Right)
+loadingSubtitle.AnchorPoint = Vector2.new(1, 0.5)
+loadingSubtitle.Position = UDim2.new(0.5, -14, 0.5, 0)
+loadingSubtitle.Size = UDim2.new(0, 520, 0, 28)
 loadingSubtitle.TextTransparency = 1
 loadingSubtitle.ZIndex = 52
 
-local loadingStatus = makeText(loadingOverlay, "", 16, colors.ivory, Enum.Font.SourceSans, Enum.TextXAlignment.Center)
-loadingStatus.AnchorPoint = Vector2.new(0.5, 0.5)
-loadingStatus.Position = UDim2.fromScale(0.5, 0.56)
-loadingStatus.Size = UDim2.new(0, 680, 0, 28)
+local loadingStatus = makeText(loadingOverlay, "", 16, colors.ivory, Enum.Font.SourceSans, Enum.TextXAlignment.Left)
+loadingStatus.AnchorPoint = Vector2.new(0, 0.5)
+loadingStatus.Position = UDim2.new(0.5, 18, 0.45, 0)
+loadingStatus.Size = UDim2.new(0, 520, 0, 42)
 loadingStatus.TextTransparency = 1
 loadingStatus.ZIndex = 52
 
 local progressBack = Instance.new("Frame")
-progressBack.AnchorPoint = Vector2.new(0.5, 1)
+progressBack.AnchorPoint = Vector2.new(0, 0.5)
 progressBack.BackgroundColor3 = Color3.fromRGB(33, 132, 203)
 progressBack.BackgroundTransparency = 1
 progressBack.BorderSizePixel = 0
-progressBack.Position = UDim2.new(0.5, 0, 1, -64)
-progressBack.Size = UDim2.new(0.62, 0, 0, 14)
+progressBack.Position = UDim2.new(0.5, 18, 0.55, 0)
+progressBack.Size = UDim2.new(0, 410, 0, 14)
 progressBack.ZIndex = 52
 progressBack.Parent = loadingOverlay
 addCorner(progressBack, 6)
@@ -675,8 +715,8 @@ progressFill.Parent = progressBack
 addCorner(progressFill, 6)
 
 local loadingPercent = makeText(loadingOverlay, "0%", 15, colors.ivory, Enum.Font.SourceSansBold, Enum.TextXAlignment.Center)
-loadingPercent.AnchorPoint = Vector2.new(0.5, 1)
-loadingPercent.Position = UDim2.new(0.5, 0, 1, -82)
+loadingPercent.AnchorPoint = Vector2.new(0, 0.5)
+loadingPercent.Position = UDim2.new(0.5, 18, 0.6, 0)
 loadingPercent.Size = UDim2.new(0, 120, 0, 22)
 loadingPercent.TextTransparency = 1
 loadingPercent.ZIndex = 52
@@ -709,6 +749,9 @@ local function showLoadingScreen(countryName, difficultyName, seed, bots)
 	loadingSubtitle.TextTransparency = 1
 	loadingStatus.TextTransparency = 1
 	loadingPercent.TextTransparency = 1
+	loadingDivider.BackgroundTransparency = 1
+	loadingDividerTop.TextTransparency = 1
+	loadingDividerBottom.TextTransparency = 1
 	progressBack.BackgroundTransparency = 1
 	progressFill.BackgroundTransparency = 1
 	progressFill.Size = UDim2.fromScale(0, 1)
@@ -721,6 +764,9 @@ local function showLoadingScreen(countryName, difficultyName, seed, bots)
 		tween(loadingSubtitle, 0.45, { TextTransparency = 0.05 })
 		tween(loadingStatus, 0.45, { TextTransparency = 0.08 })
 		tween(loadingPercent, 0.45, { TextTransparency = 0.05 })
+		tween(loadingDivider, 0.45, { BackgroundTransparency = 0.28 })
+		tween(loadingDividerTop, 0.45, { TextTransparency = 0 })
+		tween(loadingDividerBottom, 0.45, { TextTransparency = 0 })
 		tween(progressBack, 0.45, { BackgroundTransparency = 0.08 })
 		tween(progressFill, 0.45, { BackgroundTransparency = 0 })
 		task.wait(0.45)
@@ -737,6 +783,9 @@ local function showLoadingScreen(countryName, difficultyName, seed, bots)
 		tween(loadingSubtitle, 0.35, { TextTransparency = 1 })
 		tween(loadingStatus, 0.35, { TextTransparency = 1 })
 		tween(loadingPercent, 0.35, { TextTransparency = 1 })
+		tween(loadingDivider, 0.35, { BackgroundTransparency = 1 })
+		tween(loadingDividerTop, 0.35, { TextTransparency = 1 })
+		tween(loadingDividerBottom, 0.35, { TextTransparency = 1 })
 		tween(progressBack, 0.35, { BackgroundTransparency = 1 })
 		tween(progressFill, 0.35, { BackgroundTransparency = 1 })
 		main.Visible = false
@@ -758,6 +807,9 @@ local function showMainMenu()
 	menuDivider.Visible = true
 	dividerTop.Visible = true
 	dividerBottom.Visible = true
+	tabDivider.Visible = false
+	tabDividerTop.Visible = false
+	tabDividerBottom.Visible = false
 	newsPanel.Visible = true
 	titleBlock.Visible = true
 	footer.Visible = true
@@ -782,13 +834,27 @@ local function setActiveTab(tabName)
 	menuDivider.Visible = false
 	dividerTop.Visible = false
 	dividerBottom.Visible = false
+	tabDivider.Visible = true
+	tabDividerTop.Visible = true
+	tabDividerBottom.Visible = true
+	if tabName == "Shop" then
+		tabDivider.Position = UDim2.new(0.5, 0, 0, 474)
+		tabDivider.Size = UDim2.new(0, 2, 0, 330)
+		tabDividerTop.Position = UDim2.new(0.5, 0, 0, 309)
+		tabDividerBottom.Position = UDim2.new(0.5, 0, 0, 639)
+	else
+		tabDivider.Position = UDim2.new(0.5, 0, 0.53, 0)
+		tabDivider.Size = UDim2.new(0, 2, 0, 462)
+		tabDividerTop.Position = UDim2.new(0.5, 0, 0.53, -238)
+		tabDividerBottom.Position = UDim2.new(0.5, 0, 0.53, 238)
+	end
 	newsPanel.Visible = false
 	titleBlock.Visible = false
 	footer.Visible = false
 
 	for name, panel in pairs(tabs) do
 		panel.Visible = name == tabName
-		panel.BackgroundTransparency = name == tabName and 0 or 1
+		panel.BackgroundTransparency = 1
 	end
 
 	for name, button in pairs(tabButtons) do
@@ -801,21 +867,30 @@ end
 local function makeHeader(parent, heading, body)
 	local header = Instance.new("Frame")
 	header.BackgroundTransparency = 1
-	header.Size = UDim2.new(1, 0, 0, body and 80 or 48)
+	header.Size = UDim2.new(1, 0, 0, body and 92 or 60)
 	header.Parent = parent
 
-	local h = makeText(header, heading, 27, colors.gold, Enum.Font.Garamond)
-	h.Size = UDim2.new(1, -120, 0, 34)
+	local h = makeText(header, heading, 36, colors.ivory, Enum.Font.Garamond, Enum.TextXAlignment.Right)
+	h.Position = UDim2.new(0, 0, 0, 0)
+	h.Size = UDim2.new(0.5, -18, 0, 44)
+
+	local headerLine = Instance.new("Frame")
+	headerLine.BackgroundColor3 = colors.cyan
+	headerLine.BackgroundTransparency = 0.24
+	headerLine.BorderSizePixel = 0
+	headerLine.Position = UDim2.new(0, 0, 0, 48)
+	headerLine.Size = UDim2.new(0.5, -18, 0, 2)
+	headerLine.Parent = header
 
 	local backButton = makeButton(header, "Назад", 38, colors.border)
-	backButton.Position = UDim2.new(1, -106, 0, 0)
-	backButton.Size = UDim2.new(0, 106, 0, 38)
+	backButton.Position = UDim2.new(0.5, 18, 0, 6)
+	backButton.Size = UDim2.new(0, 140, 0, 38)
 	backButton.MouseButton1Click:Connect(showMainMenu)
 
 	if body then
-		local b = makeText(header, body, 16, colors.muted, Enum.Font.SourceSans)
-		b.Position = UDim2.new(0, 0, 0, 38)
-		b.Size = UDim2.new(1, 0, 0, 40)
+		local b = makeText(header, body, 16, colors.muted, Enum.Font.SourceSans, Enum.TextXAlignment.Right)
+		b.Position = UDim2.new(0, 0, 0, 58)
+		b.Size = UDim2.new(0.5, -18, 0, 34)
 	end
 
 	return header
@@ -824,6 +899,7 @@ end
 local function makeSection(parent, titleText)
 	local section = Instance.new("Frame")
 	section.BackgroundColor3 = Color3.fromRGB(34, 109, 172)
+	section.BackgroundTransparency = 0.24
 	section.BorderSizePixel = 0
 	section.Size = UDim2.new(1, 0, 0, 150)
 	section.Parent = parent
@@ -915,7 +991,7 @@ makeHeader(singleplayer, "Синглплеер", "Создай цивилиза�
 
 local singleGrid = Instance.new("Frame")
 singleGrid.BackgroundTransparency = 1
-singleGrid.Size = UDim2.new(1, 0, 0, 324)
+singleGrid.Size = UDim2.new(1, 0, 0, 360)
 singleGrid.Parent = singleplayer
 
 local singleLeft = Instance.new("Frame")
@@ -944,9 +1020,10 @@ local botCount = makeSelect(singleLeft, "Количество ботов", { "3"
 
 local singleRight = Instance.new("Frame")
 singleRight.BackgroundColor3 = Color3.fromRGB(34, 109, 172)
+singleRight.BackgroundTransparency = 0.24
 singleRight.BorderSizePixel = 0
-singleRight.Position = UDim2.new(0.5, 10, 0, 0)
-singleRight.Size = UDim2.new(0.5, -10, 1, 0)
+singleRight.Position = UDim2.new(0.5, 18, 0, 0)
+singleRight.Size = UDim2.new(0.5, -18, 1, 0)
 singleRight.Parent = singleGrid
 addCorner(singleRight, 6)
 addStroke(singleRight, colors.borderSoft, 1, 0.35)
@@ -1014,8 +1091,9 @@ multiTop.Parent = multiplayer
 
 local filters = Instance.new("Frame")
 filters.BackgroundColor3 = Color3.fromRGB(34, 109, 172)
+filters.BackgroundTransparency = 0.24
 filters.BorderSizePixel = 0
-filters.Size = UDim2.new(1, -180, 1, 0)
+filters.Size = UDim2.new(0.5, -18, 1, 0)
 filters.Parent = multiTop
 addCorner(filters, 6)
 addStroke(filters, colors.borderSoft, 1, 0.35)
@@ -1053,7 +1131,7 @@ makeSelect(filterRight, "Боты", { "Не важно", "Есть боты", "�
 
 local multiActions = Instance.new("Frame")
 multiActions.BackgroundTransparency = 1
-multiActions.Position = UDim2.new(1, -160, 0, 0)
+multiActions.Position = UDim2.new(0.5, 18, 0, 0)
 multiActions.Size = UDim2.new(0, 160, 1, 0)
 multiActions.Parent = multiTop
 local multiActionLayout = Instance.new("UIListLayout")
@@ -1064,8 +1142,10 @@ local createServerButton = makeButton(multiActions, "Создать сервер
 
 local serverList = Instance.new("Frame")
 serverList.BackgroundColor3 = Color3.fromRGB(30, 99, 166)
+serverList.BackgroundTransparency = 0.28
 serverList.BorderSizePixel = 0
-serverList.Size = UDim2.new(1, 0, 1, -312)
+serverList.Position = UDim2.new(0.5, 18, 0, 0)
+serverList.Size = UDim2.new(0.5, -18, 1, -92)
 serverList.Parent = multiplayer
 addCorner(serverList, 6)
 addStroke(serverList, colors.borderSoft, 1, 0.42)
@@ -1150,8 +1230,10 @@ makeHeader(inventory, "Инвентарь", "Прокачка классов ю�
 
 local invGrid = Instance.new("Frame")
 invGrid.BackgroundColor3 = Color3.fromRGB(30, 99, 166)
+invGrid.BackgroundTransparency = 0.28
 invGrid.BorderSizePixel = 0
-invGrid.Size = UDim2.new(1, 0, 1, -94)
+invGrid.Position = UDim2.new(0.5, 18, 0, 0)
+invGrid.Size = UDim2.new(0.5, -18, 1, -40)
 invGrid.Parent = inventory
 addCorner(invGrid, 6)
 addStroke(invGrid, colors.borderSoft, 1, 0.42)
@@ -1174,6 +1256,7 @@ makeHeader(shop, "Магазин", "Скины за внутриигровую �
 
 local currencyBar = Instance.new("Frame")
 currencyBar.BackgroundColor3 = Color3.fromRGB(34, 109, 172)
+currencyBar.BackgroundTransparency = 0.24
 currencyBar.BorderSizePixel = 0
 currencyBar.Size = UDim2.new(1, 0, 0, 58)
 currencyBar.Parent = shop
@@ -1188,11 +1271,18 @@ local buyCurrency = makeButton(currencyBar, "Купить монеты за Robu
 buyCurrency.Position = UDim2.new(1, -220, 0, 0)
 buyCurrency.Size = UDim2.new(0, 220, 0, 42)
 
+local shopBody = Instance.new("Frame")
+shopBody.BackgroundTransparency = 1
+shopBody.Size = UDim2.new(1, 0, 1, -166)
+shopBody.Parent = shop
+
 local shopGrid = Instance.new("Frame")
 shopGrid.BackgroundColor3 = Color3.fromRGB(30, 99, 166)
+shopGrid.BackgroundTransparency = 0.28
 shopGrid.BorderSizePixel = 0
-shopGrid.Size = UDim2.new(1, 0, 1, -166)
-shopGrid.Parent = shop
+shopGrid.Position = UDim2.new(0, 0, 0, 0)
+shopGrid.Size = UDim2.new(0.5, -26, 1, 0)
+shopGrid.Parent = shopBody
 addCorner(shopGrid, 6)
 addStroke(shopGrid, colors.borderSoft, 1, 0.42)
 addPadding(shopGrid, 22, 22, 22, 22)
@@ -1204,6 +1294,53 @@ shopEmptyTitle.Size = UDim2.new(1, 0, 0, 30)
 local shopEmptyBody = makeText(shopGrid, "Скины, товары и покупки валюты будут добавлены после настройки экономики и Developer Products.", 16, colors.muted, Enum.Font.SourceSans, Enum.TextXAlignment.Center)
 shopEmptyBody.Position = UDim2.new(0.12, 0, 0.5, 0)
 shopEmptyBody.Size = UDim2.new(0.76, 0, 0, 42)
+
+local bonusPanel = Instance.new("Frame")
+bonusPanel.BackgroundColor3 = Color3.fromRGB(30, 99, 166)
+bonusPanel.BackgroundTransparency = 0.28
+bonusPanel.BorderSizePixel = 0
+bonusPanel.Position = UDim2.new(0.5, 26, 0, 0)
+bonusPanel.Size = UDim2.new(0.5, -26, 1, 0)
+bonusPanel.Parent = shopBody
+addCorner(bonusPanel, 6)
+addStroke(bonusPanel, colors.borderSoft, 1, 0.42)
+addPadding(bonusPanel, 22, 22, 22, 22)
+
+local bonusTitle = makeText(bonusPanel, "Бонусы", 24, colors.cyan, Enum.Font.Garamond)
+bonusTitle.Size = UDim2.new(1, 0, 0, 30)
+
+local bonusLine = Instance.new("Frame")
+bonusLine.BackgroundColor3 = colors.cyan
+bonusLine.BackgroundTransparency = 0.2
+bonusLine.BorderSizePixel = 0
+bonusLine.Position = UDim2.new(0, 0, 0, 40)
+bonusLine.Size = UDim2.new(1, 0, 0, 2)
+bonusLine.Parent = bonusPanel
+
+local dailyTitle = makeText(bonusPanel, "Ежедневный бонус", 19, colors.ivory, Enum.Font.SourceSansSemibold)
+dailyTitle.Position = UDim2.new(0, 0, 0, 62)
+dailyTitle.Size = UDim2.new(1, 0, 0, 24)
+
+local dailyBody = makeText(bonusPanel, "+100 монет за первый вход дня", 16, colors.muted, Enum.Font.SourceSans)
+dailyBody.Position = UDim2.new(0, 0, 0, 92)
+dailyBody.Size = UDim2.new(1, 0, 0, 24)
+
+local claimDailyButton = makeButton(bonusPanel, "Забрать позже", 42, colors.cyan)
+claimDailyButton.Position = UDim2.new(0, 0, 0, 132)
+claimDailyButton.Size = UDim2.new(1, 0, 0, 42)
+
+local bonusItems = {
+	"Серия входов: 0 дней",
+	"Бонус за победу: заблокирован",
+	"Бонус за исследование: скоро",
+	"Премиум-набор: не подключён",
+}
+
+for index, bonusText in ipairs(bonusItems) do
+	local row = makeText(bonusPanel, bonusText, 15, colors.muted, Enum.Font.SourceSans)
+	row.Position = UDim2.new(0, 0, 0, 196 + (index - 1) * 34)
+	row.Size = UDim2.new(1, 0, 0, 24)
+end
 
 local menuItems = {
 	{ key = "Singleplayer", label = "Синглплеер" },
