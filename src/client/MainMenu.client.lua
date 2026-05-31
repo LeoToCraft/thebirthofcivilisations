@@ -12,24 +12,25 @@ gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = playerGui
 
 local colors = {
-	background = Color3.fromRGB(21, 74, 124),
-	panel = Color3.fromRGB(22, 92, 150),
-	panelDeep = Color3.fromRGB(14, 68, 115),
-	border = Color3.fromRGB(100, 221, 255),
-	borderSoft = Color3.fromRGB(65, 174, 224),
-	gold = Color3.fromRGB(194, 244, 255),
-	goldSoft = Color3.fromRGB(119, 211, 248),
+	background = Color3.fromRGB(32, 93, 145),
+	panel = Color3.fromRGB(34, 110, 171),
+	panelDeep = Color3.fromRGB(26, 86, 145),
+	border = Color3.fromRGB(129, 231, 255),
+	borderSoft = Color3.fromRGB(88, 194, 237),
+	gold = Color3.fromRGB(218, 249, 255),
+	goldSoft = Color3.fromRGB(154, 225, 252),
 	ivory = Color3.fromRGB(235, 250, 255),
-	muted = Color3.fromRGB(176, 225, 241),
-	red = Color3.fromRGB(111, 180, 216),
-	green = Color3.fromRGB(120, 238, 255),
-	blue = Color3.fromRGB(39, 125, 190),
-	cyan = Color3.fromRGB(103, 232, 255),
+	muted = Color3.fromRGB(194, 234, 247),
+	red = Color3.fromRGB(132, 196, 227),
+	green = Color3.fromRGB(149, 243, 255),
+	blue = Color3.fromRGB(55, 145, 207),
+	cyan = Color3.fromRGB(135, 239, 255),
 }
 
 local activeTabName = nil
 local tabs = {}
 local tabButtons = {}
+local random = Random.new()
 
 local function addCorner(parent, radius)
 	local corner = Instance.new("UICorner")
@@ -88,16 +89,16 @@ local function makeButton(parent, text, height, accentColor)
 
 	local gradient = Instance.new("UIGradient")
 	gradient.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(42, 145, 213)),
-		ColorSequenceKeypoint.new(0.5, Color3.fromRGB(24, 103, 173)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 70, 126)),
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(62, 162, 224)),
+		ColorSequenceKeypoint.new(0.5, Color3.fromRGB(40, 124, 193)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(28, 92, 153)),
 	})
 	gradient.Rotation = 90
 	gradient.Parent = button
 
 	button.MouseEnter:Connect(function()
 		TweenService:Create(button, TweenInfo.new(0.12), {
-			BackgroundColor3 = Color3.fromRGB(42, 146, 210),
+			BackgroundColor3 = Color3.fromRGB(70, 170, 226),
 			TextColor3 = colors.cyan,
 		}):Play()
 	end)
@@ -106,6 +107,41 @@ local function makeButton(parent, text, height, accentColor)
 		if tabButtons[activeTabName] ~= button then
 			TweenService:Create(button, TweenInfo.new(0.12), {
 				BackgroundColor3 = colors.panelDeep,
+				TextColor3 = colors.ivory,
+			}):Play()
+		end
+	end)
+
+	return button
+end
+
+local function makeMainMenuButton(parent, text, height)
+	local button = Instance.new("TextButton")
+	button.AutoButtonColor = false
+	button.BackgroundColor3 = Color3.fromRGB(56, 151, 210)
+	button.BackgroundTransparency = 0.82
+	button.BorderSizePixel = 0
+	button.Size = UDim2.new(1, 0, 0, height or 34)
+	button.Text = text
+	button.TextColor3 = colors.ivory
+	button.TextSize = 18
+	button.Font = Enum.Font.SourceSansSemibold
+	button.TextXAlignment = Enum.TextXAlignment.Left
+	button.Parent = parent
+	addCorner(button, 3)
+	addPadding(button, 12, 12, 0, 0)
+
+	button.MouseEnter:Connect(function()
+		TweenService:Create(button, TweenInfo.new(0.14), {
+			BackgroundTransparency = 0.42,
+			TextColor3 = colors.cyan,
+		}):Play()
+	end)
+
+	button.MouseLeave:Connect(function()
+		if tabButtons[activeTabName] ~= button then
+			TweenService:Create(button, TweenInfo.new(0.14), {
+				BackgroundTransparency = 0.82,
 				TextColor3 = colors.ivory,
 			}):Play()
 		end
@@ -124,7 +160,7 @@ local function makeField(parent, labelText, placeholderText, wrapperHeight, boxH
 	label.Size = UDim2.new(1, 0, 0, 22)
 
 	local box = Instance.new("TextBox")
-	box.BackgroundColor3 = Color3.fromRGB(18, 83, 139)
+	box.BackgroundColor3 = Color3.fromRGB(31, 105, 166)
 	box.BorderSizePixel = 0
 	box.ClearTextOnFocus = false
 	box.PlaceholderText = placeholderText or ""
@@ -165,7 +201,7 @@ local function makeSelect(parent, labelText, options, defaultIndex)
 	previous.Font = Enum.Font.SourceSansBold
 
 	local value = makeText(row, options[index], 17, colors.ivory, Enum.Font.SourceSans, Enum.TextXAlignment.Center)
-	value.BackgroundColor3 = Color3.fromRGB(18, 83, 139)
+	value.BackgroundColor3 = Color3.fromRGB(31, 105, 166)
 	value.BackgroundTransparency = 0
 	value.BorderSizePixel = 0
 	value.Position = UDim2.new(0, 52, 0, 0)
@@ -226,9 +262,9 @@ local function makePanel(parent, name)
 
 	local gradient = Instance.new("UIGradient")
 	gradient.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(34, 129, 198)),
-		ColorSequenceKeypoint.new(0.56, Color3.fromRGB(20, 87, 149)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 68, 118)),
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(54, 148, 212)),
+		ColorSequenceKeypoint.new(0.56, Color3.fromRGB(34, 106, 172)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(27, 87, 145)),
 	})
 	gradient.Rotation = 90
 	gradient.Parent = panel
@@ -246,22 +282,166 @@ background.Parent = gui
 
 local bgGradient = Instance.new("UIGradient")
 bgGradient.Color = ColorSequence.new({
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(33, 119, 184)),
-	ColorSequenceKeypoint.new(0.48, Color3.fromRGB(49, 166, 226)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(18, 82, 145)),
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 142, 204)),
+	ColorSequenceKeypoint.new(0.48, Color3.fromRGB(76, 184, 236)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(35, 107, 175)),
 })
 bgGradient.Rotation = 30
 bgGradient.Parent = background
 
-for i = 1, 22 do
-	local line = Instance.new("Frame")
-	line.BackgroundColor3 = i % 3 == 0 and colors.cyan or Color3.fromRGB(122, 214, 246)
-	line.BackgroundTransparency = i % 3 == 0 and 0.68 or 0.82
-	line.BorderSizePixel = 0
-	line.Position = UDim2.new((i * 0.07) % 1, 0, -0.1, 0)
-	line.Rotation = -26 + (i % 5) * 4
-	line.Size = UDim2.new(0, 1, 1.35, 0)
-	line.Parent = background
+task.spawn(function()
+	while bgGradient.Parent do
+		TweenService:Create(bgGradient, TweenInfo.new(8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+			Offset = Vector2.new(0.18, -0.08),
+			Rotation = 42,
+		}):Play()
+		task.wait(8)
+
+		TweenService:Create(bgGradient, TweenInfo.new(8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+			Offset = Vector2.new(-0.16, 0.1),
+			Rotation = 26,
+		}):Play()
+		task.wait(8)
+	end
+end)
+
+local function animateBackgroundElement(element, config)
+	task.spawn(function()
+		task.wait(config.Delay or 0)
+
+		while element.Parent do
+			local yScale = random:NextNumber(config.MinY or 0.04, config.MaxY or 0.96)
+			local startXScale = random:NextNumber(config.MinStartX or -0.42, config.MaxStartX or -0.12)
+			local endXScale = random:NextNumber(config.MinEndX or 1.04, config.MaxEndX or 1.22)
+			local duration = random:NextNumber(config.MinDuration or 6, config.MaxDuration or 12)
+			local height = random:NextInteger(config.MinHeight or 2, config.MaxHeight or 3)
+			local widthScale = random:NextNumber(config.MinWidthScale or 0.16, config.MaxWidthScale or 0.48)
+			local sizePixels = random:NextInteger(config.MinSize or 8, config.MaxSize or 16)
+			local visibleTransparency = random:NextNumber(config.MinVisibleTransparency or 0.52, config.MaxVisibleTransparency or 0.72)
+			local idleTransparency = random:NextNumber(config.MinIdleTransparency or 0.86, config.MaxIdleTransparency or 0.94)
+
+			if config.Kind == "node" then
+				element.Size = UDim2.fromOffset(sizePixels, sizePixels)
+				element.Rotation = random:NextNumber(0, 90)
+			elseif config.Kind == "facet" then
+				local facetSize = random:NextInteger(config.MinSize or 36, config.MaxSize or 82)
+				element.Size = UDim2.fromOffset(facetSize, facetSize)
+				element.Rotation = random:NextNumber(18, 78)
+			else
+				element.Size = UDim2.new(widthScale, 0, 0, height)
+				element.Rotation = random:NextNumber(config.MinRotation or -24, config.MaxRotation or 32)
+			end
+
+			element.Position = UDim2.new(startXScale, 0, yScale, 0)
+			element.BackgroundTransparency = idleTransparency
+
+			TweenService:Create(element, TweenInfo.new(duration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+				Position = UDim2.new(endXScale, 0, random:NextNumber(config.MinY or 0.04, config.MaxY or 0.96), 0),
+				BackgroundTransparency = visibleTransparency,
+			}):Play()
+
+			task.wait(duration)
+
+			TweenService:Create(element, TweenInfo.new(0.7, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+				BackgroundTransparency = idleTransparency,
+			}):Play()
+
+			task.wait(random:NextNumber(0.35, 1.2))
+		end
+	end)
+end
+
+for i = 1, 24 do
+	local connector = Instance.new("Frame")
+	connector.BackgroundColor3 = i % 2 == 0 and colors.cyan or Color3.fromRGB(187, 244, 255)
+	connector.BackgroundTransparency = 0.84
+	connector.BorderSizePixel = 0
+	connector.Position = UDim2.new(-0.16, 0, 0.05 + (i % 10) * 0.1, 0)
+	connector.Rotation = -18 + (i % 7) * 7
+	connector.Size = UDim2.new(0.16 + (i % 7) * 0.035, 0, 0, i % 5 == 0 and 3 or 2)
+	connector.Parent = background
+	animateBackgroundElement(connector, {
+		Delay = i * 0.11,
+		Kind = "line",
+		MinWidthScale = 0.14,
+		MaxWidthScale = 0.46,
+		MinDuration = 6.4,
+		MaxDuration = 12.5,
+		MinVisibleTransparency = 0.46,
+		MaxVisibleTransparency = 0.72,
+	})
+end
+
+for i = 1, 34 do
+	local node = Instance.new("Frame")
+	node.BackgroundColor3 = i % 3 == 0 and colors.ivory or colors.cyan
+	node.BackgroundTransparency = 0.72
+	node.BorderSizePixel = 0
+	node.Position = UDim2.new(-0.1, 0, 0.04 + (i % 12) * 0.079, 0)
+	node.Rotation = 45
+	node.Size = UDim2.fromOffset(i % 6 == 0 and 15 or 8, i % 6 == 0 and 15 or 8)
+	node.Parent = background
+	addCorner(node, 2)
+	animateBackgroundElement(node, {
+		Delay = i * 0.08,
+		Kind = "node",
+		MinSize = 6,
+		MaxSize = 18,
+		MinDuration = 5.8,
+		MaxDuration = 11.5,
+		MinVisibleTransparency = 0.5,
+		MaxVisibleTransparency = 0.76,
+	})
+end
+
+for i = 1, 18 do
+	local facet = Instance.new("Frame")
+	facet.BackgroundColor3 = i % 2 == 0 and Color3.fromRGB(114, 220, 251) or Color3.fromRGB(197, 247, 255)
+	facet.BackgroundTransparency = 0.91
+	facet.BorderSizePixel = 0
+	facet.Position = UDim2.new(-0.18, 0, 0.07 + (i % 9) * 0.105, 0)
+	facet.Rotation = 45 + (i % 4) * 15
+	facet.Size = UDim2.fromOffset(42 + (i % 4) * 12, 42 + (i % 4) * 12)
+	facet.Parent = background
+	addCorner(facet, 4)
+	addStroke(facet, i % 2 == 0 and colors.border or colors.ivory, 1, 0.54)
+	animateBackgroundElement(facet, {
+		Delay = i * 0.14,
+		Kind = "facet",
+		MinSize = 34,
+		MaxSize = 88,
+		MinDuration = 8.5,
+		MaxDuration = 15,
+		MinVisibleTransparency = 0.74,
+		MaxVisibleTransparency = 0.9,
+		MinIdleTransparency = 0.92,
+		MaxIdleTransparency = 0.97,
+	})
+end
+
+for i = 1, 8 do
+	local route = Instance.new("Frame")
+	route.BackgroundColor3 = i % 2 == 0 and Color3.fromRGB(219, 250, 255) or colors.cyan
+	route.BackgroundTransparency = 0.88
+	route.BorderSizePixel = 0
+	route.Position = UDim2.new(-0.2, 0, 0.1 + (i % 6) * 0.14, 0)
+	route.Rotation = random:NextNumber(-34, 34)
+	route.Size = UDim2.new(0.54, 0, 0, 1)
+	route.Parent = background
+	animateBackgroundElement(route, {
+		Delay = i * 0.22,
+		Kind = "line",
+		MinWidthScale = 0.34,
+		MaxWidthScale = 0.72,
+		MinHeight = 1,
+		MaxHeight = 1,
+		MinDuration = 11,
+		MaxDuration = 18,
+		MinVisibleTransparency = 0.64,
+		MaxVisibleTransparency = 0.82,
+		MinIdleTransparency = 0.9,
+		MaxIdleTransparency = 0.97,
+	})
 end
 
 local main = Instance.new("Frame")
@@ -304,35 +484,109 @@ workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(connectCameraScale)
 
 local titleBlock = Instance.new("Frame")
 titleBlock.BackgroundTransparency = 1
-titleBlock.AnchorPoint = Vector2.new(0.5, 0)
-titleBlock.Position = UDim2.new(0.5, 0, 0, 34)
-titleBlock.Size = UDim2.new(0, 420, 0, 128)
+titleBlock.AnchorPoint = Vector2.new(1, 0.5)
+titleBlock.Position = UDim2.new(0.5, -14, 0.36, 0)
+titleBlock.Size = UDim2.new(0, 680, 0, 154)
 titleBlock.Parent = main
 
-local title = makeText(titleBlock, "THE BIRTH\nOF CIVILISATIONS", 35, colors.gold, Enum.Font.Garamond, Enum.TextXAlignment.Center)
-title.Size = UDim2.new(1, 0, 0, 86)
+local title = makeText(titleBlock, "BIRTH OF CIVILISATIONS", 56, colors.ivory, Enum.Font.Garamond, Enum.TextXAlignment.Right)
+title.Position = UDim2.new(0, 0, 0, 38)
+title.Size = UDim2.new(1, 0, 0, 76)
 title.TextYAlignment = Enum.TextYAlignment.Top
 
-local subtitle = makeText(titleBlock, "A STRATEGY EXPERIENCE", 14, colors.cyan, Enum.Font.SourceSansSemibold, Enum.TextXAlignment.Center)
-subtitle.Position = UDim2.new(0, 0, 0, 88)
+local subtitle = makeText(titleBlock, "A ROBLOX STRATEGY PROJECT", 14, colors.cyan, Enum.Font.SourceSansSemibold, Enum.TextXAlignment.Right)
+subtitle.Position = UDim2.new(0, 4, 0, 20)
 subtitle.Size = UDim2.new(1, 0, 0, 20)
 
 local menuColumn = Instance.new("Frame")
 menuColumn.Name = "MenuColumn"
-menuColumn.AnchorPoint = Vector2.new(0.5, 0.5)
-menuColumn.BackgroundColor3 = Color3.fromRGB(22, 91, 150)
+menuColumn.AnchorPoint = Vector2.new(0, 0.5)
+menuColumn.BackgroundTransparency = 1
+menuColumn.BackgroundColor3 = Color3.fromRGB(34, 109, 172)
 menuColumn.BorderSizePixel = 0
-menuColumn.Position = UDim2.new(0.5, 0, 0.58, 0)
-menuColumn.Size = UDim2.new(0, 330, 0, 344)
+menuColumn.Position = UDim2.new(0.5, 0, 0.53, 0)
+menuColumn.Size = UDim2.new(0, 290, 0, 320)
 menuColumn.Parent = main
-addCorner(menuColumn, 6)
-addStroke(menuColumn, colors.border, 1, 0.18)
-addPadding(menuColumn, 16, 16, 16, 16)
+addPadding(menuColumn, 0, 0, 0, 0)
 
 local menuLayout = Instance.new("UIListLayout")
-menuLayout.Padding = UDim.new(0, 10)
+menuLayout.Padding = UDim.new(0, 8)
 menuLayout.SortOrder = Enum.SortOrder.LayoutOrder
 menuLayout.Parent = menuColumn
+
+local menuDivider = Instance.new("Frame")
+menuDivider.Name = "MenuDivider"
+menuDivider.BackgroundColor3 = colors.cyan
+menuDivider.BackgroundTransparency = 0.36
+menuDivider.BorderSizePixel = 0
+menuDivider.AnchorPoint = Vector2.new(0.5, 0.5)
+menuDivider.Position = UDim2.new(0.5, 0, 0.53, 0)
+menuDivider.Size = UDim2.new(0, 2, 0, 462)
+menuDivider.Parent = main
+
+local dividerTop = makeText(main, "▲", 24, colors.cyan, Enum.Font.SourceSansBold, Enum.TextXAlignment.Center)
+dividerTop.AnchorPoint = Vector2.new(0.5, 0.5)
+dividerTop.Position = UDim2.new(0.5, 0, 0.53, -238)
+dividerTop.Size = UDim2.fromOffset(28, 24)
+
+local dividerBottom = makeText(main, "▼", 24, colors.cyan, Enum.Font.SourceSansBold, Enum.TextXAlignment.Center)
+dividerBottom.AnchorPoint = Vector2.new(0.5, 0.5)
+dividerBottom.Position = UDim2.new(0.5, 0, 0.53, 238)
+dividerBottom.Size = UDim2.fromOffset(28, 24)
+
+local newsPanel = Instance.new("Frame")
+newsPanel.Name = "ProjectNews"
+newsPanel.AnchorPoint = Vector2.new(1, 0.5)
+newsPanel.BackgroundColor3 = Color3.fromRGB(39, 121, 184)
+newsPanel.BackgroundTransparency = 0.24
+newsPanel.BorderSizePixel = 0
+newsPanel.Position = UDim2.new(0.5, 0, 0.64, 0)
+newsPanel.Size = UDim2.new(0, 360, 0, 230)
+newsPanel.Parent = main
+addCorner(newsPanel, 6)
+addStroke(newsPanel, colors.borderSoft, 1, 0.34)
+addPadding(newsPanel, 18, 18, 16, 16)
+
+local newsGradient = Instance.new("UIGradient")
+newsGradient.Color = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(58, 153, 215)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(32, 104, 171)),
+})
+newsGradient.Rotation = 90
+newsGradient.Parent = newsPanel
+
+local newsTitle = makeText(newsPanel, "Новости проекта", 22, colors.ivory, Enum.Font.Garamond)
+newsTitle.Size = UDim2.new(1, 0, 0, 28)
+
+local newsLine = Instance.new("Frame")
+newsLine.BackgroundColor3 = colors.cyan
+newsLine.BackgroundTransparency = 0.18
+newsLine.BorderSizePixel = 0
+newsLine.Position = UDim2.new(0, 0, 0, 38)
+newsLine.Size = UDim2.new(1, 0, 0, 2)
+newsLine.Parent = newsPanel
+
+local newsItems = {
+	"Меню переработано под стиль стратегической карты.",
+	"Загрузка теперь скрывает интерфейс после 100%.",
+	"Следующий этап: игровой HUD и стартовая карта.",
+}
+
+for index, text in ipairs(newsItems) do
+	local marker = Instance.new("Frame")
+	marker.BackgroundColor3 = colors.cyan
+	marker.BackgroundTransparency = 0.12
+	marker.BorderSizePixel = 0
+	marker.Position = UDim2.new(0, 0, 0, 58 + (index - 1) * 50)
+	marker.Size = UDim2.fromOffset(6, 6)
+	marker.Parent = newsPanel
+	addCorner(marker, 3)
+
+	local item = makeText(newsPanel, text, 15, colors.muted, Enum.Font.SourceSans)
+	item.Position = UDim2.new(0, 18, 0, 49 + (index - 1) * 50)
+	item.Size = UDim2.new(1, -18, 0, 40)
+	item.TextYAlignment = Enum.TextYAlignment.Top
+end
 
 local content = Instance.new("Frame")
 content.Name = "Content"
@@ -485,6 +739,8 @@ local function showLoadingScreen(countryName, difficultyName, seed, bots)
 		tween(loadingPercent, 0.35, { TextTransparency = 1 })
 		tween(progressBack, 0.35, { BackgroundTransparency = 1 })
 		tween(progressFill, 0.35, { BackgroundTransparency = 1 })
+		main.Visible = false
+		background.Visible = false
 		tween(loadingOverlay, 0.45, { BackgroundTransparency = 1 })
 		task.wait(0.45)
 
@@ -495,8 +751,14 @@ end
 
 local function showMainMenu()
 	activeTabName = nil
+	main.Visible = true
+	background.Visible = true
 	content.Visible = false
 	menuColumn.Visible = true
+	menuDivider.Visible = true
+	dividerTop.Visible = true
+	dividerBottom.Visible = true
+	newsPanel.Visible = true
 	titleBlock.Visible = true
 	footer.Visible = true
 
@@ -507,13 +769,20 @@ local function showMainMenu()
 	for _, button in pairs(tabButtons) do
 		button.TextColor3 = colors.ivory
 		button.BackgroundColor3 = colors.panelDeep
+		button.BackgroundTransparency = 0.82
 	end
 end
 
 local function setActiveTab(tabName)
 	activeTabName = tabName
+	main.Visible = true
+	background.Visible = true
 	content.Visible = true
 	menuColumn.Visible = false
+	menuDivider.Visible = false
+	dividerTop.Visible = false
+	dividerBottom.Visible = false
+	newsPanel.Visible = false
 	titleBlock.Visible = false
 	footer.Visible = false
 
@@ -525,7 +794,7 @@ local function setActiveTab(tabName)
 	for name, button in pairs(tabButtons) do
 		local selected = name == tabName
 		button.TextColor3 = selected and colors.cyan or colors.ivory
-		button.BackgroundColor3 = selected and Color3.fromRGB(40, 143, 210) or colors.panelDeep
+		button.BackgroundColor3 = selected and Color3.fromRGB(64, 162, 224) or colors.panelDeep
 	end
 end
 
@@ -554,7 +823,7 @@ end
 
 local function makeSection(parent, titleText)
 	local section = Instance.new("Frame")
-	section.BackgroundColor3 = Color3.fromRGB(20, 88, 146)
+	section.BackgroundColor3 = Color3.fromRGB(34, 109, 172)
 	section.BorderSizePixel = 0
 	section.Size = UDim2.new(1, 0, 0, 150)
 	section.Parent = parent
@@ -576,7 +845,7 @@ end
 local function makeToggle(parent, text, defaultEnabled)
 	local button = Instance.new("TextButton")
 	button.AutoButtonColor = false
-	button.BackgroundColor3 = Color3.fromRGB(21, 89, 148)
+	button.BackgroundColor3 = Color3.fromRGB(35, 112, 174)
 	button.BorderSizePixel = 0
 	button.Size = UDim2.new(1, 0, 0, 34)
 	button.Text = ""
@@ -616,7 +885,7 @@ local function makeSlider(parent, text, value)
 	label.Size = UDim2.new(0.45, 0, 1, 0)
 
 	local track = Instance.new("Frame")
-	track.BackgroundColor3 = Color3.fromRGB(18, 75, 128)
+	track.BackgroundColor3 = Color3.fromRGB(32, 100, 166)
 	track.BorderSizePixel = 0
 	track.Position = UDim2.new(0.48, 0, 0.5, -4)
 	track.Size = UDim2.new(0.38, 0, 0, 8)
@@ -674,7 +943,7 @@ local difficulty = makeSelect(singleLeft, "Сложность", {
 local botCount = makeSelect(singleLeft, "Количество ботов", { "3", "4", "5", "6", "7", "8", "10", "12" }, 1)
 
 local singleRight = Instance.new("Frame")
-singleRight.BackgroundColor3 = Color3.fromRGB(20, 88, 146)
+singleRight.BackgroundColor3 = Color3.fromRGB(34, 109, 172)
 singleRight.BorderSizePixel = 0
 singleRight.Position = UDim2.new(0.5, 10, 0, 0)
 singleRight.Size = UDim2.new(0.5, -10, 1, 0)
@@ -740,11 +1009,11 @@ makeHeader(multiplayer, "Мультиплеер", "Поиск серверов, 
 
 local multiTop = Instance.new("Frame")
 multiTop.BackgroundTransparency = 1
-multiTop.Size = UDim2.new(1, 0, 0, 170)
+multiTop.Size = UDim2.new(1, 0, 0, 218)
 multiTop.Parent = multiplayer
 
 local filters = Instance.new("Frame")
-filters.BackgroundColor3 = Color3.fromRGB(20, 88, 146)
+filters.BackgroundColor3 = Color3.fromRGB(34, 109, 172)
 filters.BorderSizePixel = 0
 filters.Size = UDim2.new(1, -180, 1, 0)
 filters.Parent = multiTop
@@ -794,9 +1063,9 @@ local refreshButton = makeButton(multiActions, "Обновить", 48, colors.bo
 local createServerButton = makeButton(multiActions, "Создать сервер", 48, colors.gold)
 
 local serverList = Instance.new("Frame")
-serverList.BackgroundColor3 = Color3.fromRGB(17, 78, 135)
+serverList.BackgroundColor3 = Color3.fromRGB(30, 99, 166)
 serverList.BorderSizePixel = 0
-serverList.Size = UDim2.new(1, 0, 1, -264)
+serverList.Size = UDim2.new(1, 0, 1, -312)
 serverList.Parent = multiplayer
 addCorner(serverList, 6)
 addStroke(serverList, colors.borderSoft, 1, 0.42)
@@ -880,7 +1149,7 @@ inventoryLayout.Parent = inventory
 makeHeader(inventory, "Инвентарь", "Прокачка классов юнитов, косметика и будущие коллекции.")
 
 local invGrid = Instance.new("Frame")
-invGrid.BackgroundColor3 = Color3.fromRGB(17, 78, 135)
+invGrid.BackgroundColor3 = Color3.fromRGB(30, 99, 166)
 invGrid.BorderSizePixel = 0
 invGrid.Size = UDim2.new(1, 0, 1, -94)
 invGrid.Parent = inventory
@@ -904,7 +1173,7 @@ shopLayout.Parent = shop
 makeHeader(shop, "Магазин", "Скины за внутриигровую валюту и будущие покупки валюты за Robux.")
 
 local currencyBar = Instance.new("Frame")
-currencyBar.BackgroundColor3 = Color3.fromRGB(20, 88, 146)
+currencyBar.BackgroundColor3 = Color3.fromRGB(34, 109, 172)
 currencyBar.BorderSizePixel = 0
 currencyBar.Size = UDim2.new(1, 0, 0, 58)
 currencyBar.Parent = shop
@@ -912,7 +1181,7 @@ addCorner(currencyBar, 6)
 addStroke(currencyBar, colors.border, 1, 0.24)
 addPadding(currencyBar, 16, 16, 8, 8)
 
-local coins = makeText(currencyBar, "Казна: 1 250 монет", 21, colors.gold, Enum.Font.Garamond)
+local coins = makeText(currencyBar, "Казна: 0 монет", 21, colors.gold, Enum.Font.Garamond)
 coins.Size = UDim2.new(0.5, 0, 1, 0)
 
 local buyCurrency = makeButton(currencyBar, "Купить монеты за Robux", 42, colors.cyan)
@@ -920,7 +1189,7 @@ buyCurrency.Position = UDim2.new(1, -220, 0, 0)
 buyCurrency.Size = UDim2.new(0, 220, 0, 42)
 
 local shopGrid = Instance.new("Frame")
-shopGrid.BackgroundColor3 = Color3.fromRGB(17, 78, 135)
+shopGrid.BackgroundColor3 = Color3.fromRGB(30, 99, 166)
 shopGrid.BorderSizePixel = 0
 shopGrid.Size = UDim2.new(1, 0, 1, -166)
 shopGrid.Parent = shop
@@ -945,7 +1214,7 @@ local menuItems = {
 }
 
 for order, item in ipairs(menuItems) do
-	local button = makeButton(menuColumn, item.label, 52, order == 1 and colors.gold or colors.border)
+	local button = makeMainMenuButton(menuColumn, item.label, 38)
 	button.LayoutOrder = order
 	tabButtons[item.key] = button
 	button.MouseButton1Click:Connect(function()
