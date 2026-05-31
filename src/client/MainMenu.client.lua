@@ -1,5 +1,10 @@
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local MapGenerator = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("MapGenerator"))
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -617,6 +622,133 @@ footer.AnchorPoint = Vector2.new(0, 1)
 footer.Position = UDim2.new(0, 0, 1, 0)
 footer.Size = UDim2.new(1, 0, 0, 22)
 
+local mapHud = Instance.new("Frame")
+mapHud.Name = "GeneratedMapHud"
+mapHud.BackgroundColor3 = Color3.fromRGB(27, 84, 124)
+mapHud.BackgroundTransparency = 0.16
+mapHud.BorderSizePixel = 0
+mapHud.AnchorPoint = Vector2.new(1, 0)
+mapHud.Position = UDim2.new(1, -18, 0, 18)
+mapHud.Size = UDim2.fromOffset(112, 44)
+mapHud.Visible = false
+mapHud.ZIndex = 20
+mapHud.Parent = gui
+addCorner(mapHud, 6)
+addStroke(mapHud, colors.borderSoft, 1, 0.28)
+addPadding(mapHud, 14, 14, 10, 10)
+
+local mapHudTitle = makeText(mapHud, "Карта не создана", 18, colors.ivory, Enum.Font.SourceSansSemibold)
+mapHudTitle.Size = UDim2.new(1, -110, 0, 24)
+mapHudTitle.ZIndex = 21
+mapHudTitle.Visible = false
+
+local mapHudStats = makeText(mapHud, "", 14, colors.muted, Enum.Font.SourceSans)
+mapHudStats.Position = UDim2.new(0, 0, 0, 30)
+mapHudStats.Size = UDim2.new(1, 0, 0, 42)
+mapHudStats.TextYAlignment = Enum.TextYAlignment.Top
+mapHudStats.ZIndex = 21
+mapHudStats.Visible = false
+
+local mapMenuButton = makeButton(mapHud, "Меню", 32, colors.cyan)
+mapMenuButton.Position = UDim2.new(0, 0, 0, 0)
+mapMenuButton.Size = UDim2.new(1, 0, 1, 0)
+mapMenuButton.ZIndex = 21
+
+local generatedMapFolder = nil
+local mapTileSize = 3
+local maxRenderedMapAxis = 420
+local mapCameraTarget = Vector3.new(0, 0, 0)
+local mapCameraHeight = 110
+local mapCameraBounds = {
+	MinX = -300,
+	MaxX = 300,
+	MinZ = -300,
+	MaxZ = 300,
+}
+local playerControls = nil
+
+local mapExitConfirm = Instance.new("Frame")
+mapExitConfirm.Name = "MapExitConfirm"
+mapExitConfirm.AnchorPoint = Vector2.new(0.5, 0.5)
+mapExitConfirm.BackgroundColor3 = Color3.fromRGB(24, 78, 128)
+mapExitConfirm.BackgroundTransparency = 0.06
+mapExitConfirm.BorderSizePixel = 0
+mapExitConfirm.Position = UDim2.fromScale(0.5, 0.5)
+mapExitConfirm.Size = UDim2.fromOffset(360, 174)
+mapExitConfirm.Visible = false
+mapExitConfirm.ZIndex = 60
+mapExitConfirm.Parent = gui
+addCorner(mapExitConfirm, 6)
+addStroke(mapExitConfirm, colors.border, 1, 0.12)
+addPadding(mapExitConfirm, 18, 18, 16, 16)
+
+local exitConfirmTitle = makeText(mapExitConfirm, "Вы уверены?", 28, colors.ivory, Enum.Font.Garamond, Enum.TextXAlignment.Center)
+exitConfirmTitle.Size = UDim2.new(1, 0, 0, 34)
+exitConfirmTitle.ZIndex = 61
+
+local exitConfirmBody = makeText(mapExitConfirm, "Текущая карта будет закрыта, а вы вернётесь в главное меню.", 16, colors.muted, Enum.Font.SourceSans, Enum.TextXAlignment.Center)
+exitConfirmBody.Position = UDim2.new(0, 0, 0, 44)
+exitConfirmBody.Size = UDim2.new(1, 0, 0, 44)
+exitConfirmBody.ZIndex = 61
+
+local exitConfirmCancel = makeButton(mapExitConfirm, "Отмена", 38, colors.borderSoft)
+exitConfirmCancel.Position = UDim2.new(0, 0, 1, -38)
+exitConfirmCancel.Size = UDim2.new(0.5, -7, 0, 38)
+exitConfirmCancel.ZIndex = 61
+
+local exitConfirmAccept = makeButton(mapExitConfirm, "В меню", 38, colors.gold)
+exitConfirmAccept.Position = UDim2.new(0.5, 7, 1, -38)
+exitConfirmAccept.Size = UDim2.new(0.5, -7, 0, 38)
+exitConfirmAccept.ZIndex = 61
+
+local strategyHud = Instance.new("Frame")
+strategyHud.Name = "StrategyHud"
+strategyHud.BackgroundColor3 = Color3.fromRGB(24, 78, 128)
+strategyHud.BackgroundTransparency = 0.12
+strategyHud.BorderSizePixel = 0
+strategyHud.Position = UDim2.new(0, 18, 0, 64)
+strategyHud.Size = UDim2.fromOffset(392, 328)
+strategyHud.Visible = false
+strategyHud.ZIndex = 20
+strategyHud.Parent = gui
+addCorner(strategyHud, 6)
+addStroke(strategyHud, colors.borderSoft, 1, 0.28)
+addPadding(strategyHud, 14, 14, 12, 12)
+
+local strategyTitle = makeText(strategyHud, "Государство", 20, colors.ivory, Enum.Font.Garamond)
+strategyTitle.Size = UDim2.new(1, 0, 0, 26)
+strategyTitle.ZIndex = 21
+
+local strategyYields = makeText(strategyHud, "", 14, colors.cyan, Enum.Font.SourceSansSemibold)
+strategyYields.Position = UDim2.new(0, 0, 0, 32)
+strategyYields.Size = UDim2.new(1, 0, 0, 38)
+strategyYields.ZIndex = 21
+
+local strategySystems = makeText(strategyHud, "", 14, colors.muted, Enum.Font.SourceSans)
+strategySystems.Position = UDim2.new(0, 0, 0, 76)
+strategySystems.Size = UDim2.new(1, 0, 1, -126)
+strategySystems.TextYAlignment = Enum.TextYAlignment.Top
+strategySystems.ZIndex = 21
+
+local nextTurnButton = makeButton(strategyHud, "Следующий ход", 38, colors.gold)
+nextTurnButton.Position = UDim2.new(0, 0, 1, -38)
+nextTurnButton.Size = UDim2.new(1, 0, 0, 38)
+nextTurnButton.ZIndex = 21
+
+local gameState = {
+	Turn = 1,
+	Era = "Древний мир",
+	Government = "Вождизм",
+	Science = 3,
+	Culture = 2,
+	Gold = 5,
+	Faith = 0,
+	DiplomaticFavor = 0,
+	Technology = "Гончарное дело",
+	Civic = "Свод законов",
+	City = "Столица",
+}
+
 local loadingOverlay = Instance.new("Frame")
 loadingOverlay.Name = "MapLoadingOverlay"
 loadingOverlay.BackgroundColor3 = Color3.fromRGB(26, 114, 180)
@@ -722,13 +854,6 @@ loadingPercent.TextTransparency = 1
 loadingPercent.ZIndex = 52
 
 local loadingInProgress = false
-local loadingStages = {
-	{ progress = 0.18, text = "Прокладываем береговые линии..." },
-	{ progress = 0.36, text = "Расставляем реки и горные хребты..." },
-	{ progress = 0.58, text = "Подготавливаем стартовые позиции..." },
-	{ progress = 0.79, text = "Проверяем параметры цивилизации..." },
-	{ progress = 1, text = "Карта готова." },
-}
 
 local function tween(instance, time, properties, easingStyle, easingDirection)
 	local info = TweenInfo.new(time, easingStyle or Enum.EasingStyle.Quad, easingDirection or Enum.EasingDirection.Out)
@@ -737,10 +862,236 @@ local function tween(instance, time, properties, easingStyle, easingDirection)
 	return tweenObject
 end
 
-local function showLoadingScreen(countryName, difficultyName, seed, bots)
+local function updateStrategyHud()
+	strategyTitle.Text = ("%s | Ход %d | %s"):format(gameState.City, gameState.Turn, gameState.Era)
+	strategyYields.Text = ("Наука +%d  Культура +%d  Золото +%d  Вера +%d  Дип. влияние +%d"):format(
+		gameState.Science,
+		gameState.Culture,
+		gameState.Gold,
+		gameState.Faith,
+		gameState.DiplomaticFavor
+	)
+	strategySystems.Text = table.concat({
+		("Технология: %s -> Письменность, Ирригация, Горное дело"):format(gameState.Technology),
+		("Цивик: %s -> Ремесло, Внешняя торговля, Ранняя империя"):format(gameState.Civic),
+		("Правительство: %s | политики: военная, экономическая, дипломатическая, wildcard"):format(gameState.Government),
+		"Город и районы: центр города, кампус, священное место, коммерческий узел, театр, промышленная зона, гавань.",
+		"Чудеса и великие люди: очки великих учёных/писателей/полководцев, места под чудеса рядом с подходящими тайлами.",
+		"Религия и торговля: вера, пантеон, пророк, миссионеры, торговые пути и дороги между городами.",
+		"Дипломатия: лидеры, город-государства, послы, союзы, дипломатическая валюта, мировой конгресс.",
+		"Эпохи и империя: очки эпохи, золотой/тёмный век, лояльность городов, губернаторы, чрезвычайные ситуации.",
+		"Мир: варвары, ресурсы, стихийные бедствия, климат, энергия, затопления, засухи и ураганы.",
+	}, "\n")
+end
+
+local function setGeneratedMapVisible(isVisible)
+	if generatedMapFolder then
+		for _, child in ipairs(generatedMapFolder:GetChildren()) do
+			if child:IsA("BasePart") then
+				child.Transparency = isVisible and child:GetAttribute("BaseTransparency") or 1
+			end
+		end
+	end
+
+	mapHud.Visible = isVisible
+	strategyHud.Visible = isVisible
+	if not isVisible then
+		mapExitConfirm.Visible = false
+	end
+end
+
+local function clearGeneratedMap()
+	local existing = workspace:FindFirstChild("CivilisationGeneratedMap")
+	if existing then
+		existing:Destroy()
+	end
+
+	generatedMapFolder = nil
+	mapHud.Visible = false
+end
+
+local function setCharacterVisible(isVisible)
+	local character = player.Character
+	if not character then
+		return
+	end
+
+	for _, descendant in ipairs(character:GetDescendants()) do
+		if descendant:IsA("BasePart") then
+			descendant.LocalTransparencyModifier = isVisible and 0 or 1
+			descendant.CanCollide = false
+		elseif descendant:IsA("Decal") then
+			descendant.Transparency = isVisible and 0 or 1
+		end
+	end
+end
+
+local function getPlayerControls()
+	if playerControls then
+		return playerControls
+	end
+
+	local playerScripts = player:WaitForChild("PlayerScripts")
+	local playerModule = require(playerScripts:WaitForChild("PlayerModule"))
+	playerControls = playerModule:GetControls()
+	return playerControls
+end
+
+local function setPlayerMovementEnabled(isEnabled)
+	local controls = getPlayerControls()
+	if isEnabled then
+		controls:Enable()
+	else
+		controls:Disable()
+	end
+end
+
+local function getTileTopY(tileInfo)
+	return tileInfo.Height
+end
+
+local function createMapPart(parent, name, tileInfo, position, sizeX, sizeZ, transparency)
+	local topY = getTileTopY(tileInfo)
+	local thickness = tileInfo.Height
+	local part = Instance.new("Part")
+	part.Name = name
+	part.Anchored = true
+	part.CanCollide = tileInfo.Walkable
+	part.Color = tileInfo.Color
+	part.Material = tileInfo.Material
+	part.Size = Vector3.new(sizeX, thickness, sizeZ)
+	part.Position = Vector3.new(position.X, topY - thickness * 0.5, position.Z)
+	part.CastShadow = tileInfo.Key == "Mountain"
+	part.TopSurface = Enum.SurfaceType.Smooth
+	part.BottomSurface = Enum.SurfaceType.Smooth
+	part.Transparency = transparency or 0
+	part:SetAttribute("BaseTransparency", transparency or 0)
+	part:SetAttribute("TileType", tileInfo.Name)
+	part:SetAttribute("HeightScale", tileInfo.Height)
+	part:SetAttribute("Walkable", tileInfo.Walkable)
+	part.Parent = parent
+	return part
+end
+
+local function mapCellCenter(x, z, spanX, spanZ, width, length)
+	return Vector3.new(
+		((x - 1) + spanX * 0.5 - width * 0.5) * mapTileSize,
+		0,
+		((z - 1) + spanZ * 0.5 - length * 0.5) * mapTileSize
+	)
+end
+
+local function createMapBorders(parent, width, length, seedValue)
+	local water = MapGenerator.GetTileAt(-1, -1, width, length, seedValue)
+	local sand = MapGenerator.GetTileAt(0, 0, width, length, seedValue)
+	local waterPadding = 260
+
+	local outerWater = createMapPart(parent, "OuterWater", water, Vector3.new(0, 0, 0), (width + waterPadding * 2) * mapTileSize, (length + waterPadding * 2) * mapTileSize, 0.08)
+	outerWater.Position = Vector3.new(0, getTileTopY(water) - 0.55, 0)
+	createMapPart(parent, "NorthSandBorder", sand, mapCellCenter(0, 0, width + 2, 1, width, length), (width + 2) * mapTileSize, mapTileSize, 0)
+	createMapPart(parent, "SouthSandBorder", sand, mapCellCenter(0, length + 1, width + 2, 1, width, length), (width + 2) * mapTileSize, mapTileSize, 0)
+	createMapPart(parent, "WestSandBorder", sand, mapCellCenter(0, 1, 1, length, width, length), mapTileSize, length * mapTileSize, 0)
+	createMapPart(parent, "EastSandBorder", sand, mapCellCenter(width + 1, 1, 1, length, width, length), mapTileSize, length * mapTileSize, 0)
+end
+
+local function renderGeneratedMap(mapConfig, onProgress)
+	clearGeneratedMap()
+
+	local folder = Instance.new("Folder")
+	folder.Name = "CivilisationGeneratedMap"
+	folder:SetAttribute("Seed", mapConfig.Seed)
+	folder:SetAttribute("SeedValue", mapConfig.SeedValue)
+	folder:SetAttribute("Width", mapConfig.Width)
+	folder:SetAttribute("Length", mapConfig.Length)
+	folder.Parent = workspace
+	generatedMapFolder = folder
+
+	createMapBorders(folder, mapConfig.Width, mapConfig.Length, mapConfig.SeedValue)
+
+	local step = math.max(1, math.ceil(math.max(mapConfig.Width, mapConfig.Length) / maxRenderedMapAxis))
+	local columns = math.ceil(mapConfig.Width / step)
+	local rows = math.ceil(mapConfig.Length / step)
+	local totalTiles = columns * rows
+	local renderedTiles = 0
+	local stats = {
+		Water = 0,
+		Snow = 0,
+		Sand = 0,
+		Grass = 0,
+		Mountain = 0,
+	}
+
+	for z = 1, mapConfig.Length, step do
+		local spanZ = math.min(step, mapConfig.Length - z + 1)
+
+		for x = 1, mapConfig.Width, step do
+			local spanX = math.min(step, mapConfig.Width - x + 1)
+			local tileInfo = MapGenerator.GetTileAt(x, z, mapConfig.Width, mapConfig.Length, mapConfig.SeedValue)
+			local cellCount = spanX * spanZ
+			stats[tileInfo.Key] = (stats[tileInfo.Key] or 0) + cellCount
+
+			local part = createMapPart(
+				folder,
+				tileInfo.Key,
+				tileInfo,
+				mapCellCenter(x, z, spanX, spanZ, mapConfig.Width, mapConfig.Length),
+				spanX * mapTileSize,
+				spanZ * mapTileSize,
+				0
+			)
+			part:SetAttribute("MapX", x)
+			part:SetAttribute("MapZ", z)
+			part:SetAttribute("SampleStep", step)
+
+			renderedTiles += 1
+			if renderedTiles % 180 == 0 then
+				onProgress(renderedTiles / totalTiles, ("Генерируем клетки: %d/%d"):format(renderedTiles, totalTiles))
+				task.wait()
+			end
+		end
+	end
+
+	onProgress(1, "Клетки, высоты и проходимость готовы.")
+	return {
+		Step = step,
+		RenderedTiles = totalTiles,
+		Stats = stats,
+	}
+end
+
+local function applyMapCamera()
+	local camera = workspace.CurrentCamera
+	if not camera then
+		return
+	end
+
+	camera.CameraType = Enum.CameraType.Scriptable
+	camera.FieldOfView = 40
+	camera.CFrame = CFrame.lookAt(
+		mapCameraTarget + Vector3.new(0, mapCameraHeight, -mapCameraHeight * 0.95),
+		mapCameraTarget + Vector3.new(0, 2, 0)
+	)
+end
+
+local function focusCameraOnMap(width, length)
+	local maxSide = math.max(width, length) * mapTileSize
+	mapCameraHeight = math.clamp(maxSide * 0.045, 28, 72)
+	mapCameraTarget = Vector3.new(0, 0, 0)
+	mapCameraBounds = {
+		MinX = -width * mapTileSize * 0.5,
+		MaxX = width * mapTileSize * 0.5,
+		MinZ = -length * mapTileSize * 0.5,
+		MaxZ = length * mapTileSize * 0.5,
+	}
+	applyMapCamera()
+end
+
+local function showLoadingScreen(countryName, difficultyName, seed, bots, mapWidth, mapLength)
 	if loadingInProgress then
 		return
 	end
+
+	local mapConfig = MapGenerator.CreateConfig(seed, mapWidth, mapLength)
 
 	loadingInProgress = true
 	loadingOverlay.Visible = true
@@ -756,9 +1107,15 @@ local function showLoadingScreen(countryName, difficultyName, seed, bots)
 	progressFill.BackgroundTransparency = 1
 	progressFill.Size = UDim2.fromScale(0, 1)
 	loadingPercent.Text = "0%"
-	loadingStatus.Text = ("Страна: %s | Сложность: %s | Сид: %s | Боты: %s"):format(countryName, difficultyName, seed, bots)
+	loadingStatus.Text = ("Страна: %s | %dx%d | сид: %s | боты: %s"):format(countryName, mapConfig.Width, mapConfig.Length, seed, bots)
 
 	task.spawn(function()
+		local function setProgress(progress, text)
+			loadingStatus.Text = text
+			loadingPercent.Text = tostring(math.floor(progress * 100)) .. "%"
+			tween(progressFill, 0.22, { Size = UDim2.fromScale(progress, 1) }, Enum.EasingStyle.Sine)
+		end
+
 		tween(loadingOverlay, 0.35, { BackgroundTransparency = 0.02 })
 		tween(loadingTitle, 0.35, { TextTransparency = 0 })
 		tween(loadingSubtitle, 0.45, { TextTransparency = 0.05 })
@@ -771,12 +1128,34 @@ local function showLoadingScreen(countryName, difficultyName, seed, bots)
 		tween(progressFill, 0.45, { BackgroundTransparency = 0 })
 		task.wait(0.45)
 
-		for _, stage in ipairs(loadingStages) do
-			loadingStatus.Text = stage.text
-			loadingPercent.Text = tostring(math.floor(stage.progress * 100)) .. "%"
-			tween(progressFill, 0.55, { Size = UDim2.fromScale(stage.progress, 1) }, Enum.EasingStyle.Sine)
-			task.wait(0.72)
-		end
+		setProgress(0.12, "Нормализуем сид и размеры мира...")
+		task.wait(0.12)
+		setProgress(0.22, "Создаём песчаную границу и внешнее море...")
+		local renderInfo = renderGeneratedMap(mapConfig, function(progress, text)
+			setProgress(0.22 + progress * 0.62, text)
+		end)
+		setProgress(0.88, "Настраиваем камеру и карту партии...")
+		focusCameraOnMap(mapConfig.Width, mapConfig.Length)
+		gameState.Turn = 1
+		gameState.City = countryName
+		gameState.Science = 3 + math.floor(renderInfo.Stats.Mountain / math.max(mapConfig.Width * mapConfig.Length, 1) * 12)
+		gameState.Culture = 2 + math.floor(renderInfo.Stats.Snow / math.max(mapConfig.Width * mapConfig.Length, 1) * 10)
+		gameState.Gold = 5 + math.floor(renderInfo.Stats.Sand / math.max(mapConfig.Width * mapConfig.Length, 1) * 18)
+		gameState.Faith = math.floor(renderInfo.Stats.Grass / math.max(mapConfig.Width * mapConfig.Length, 1) * 4)
+		gameState.DiplomaticFavor = 0
+		updateStrategyHud()
+		mapHudTitle.Text = ("%s | %dx%d"):format(countryName, mapConfig.Width, mapConfig.Length)
+		mapHudStats.Text = ("Сид: %s | шаг отрисовки: %d | тайлов: %d\nВода %d, снег %d, песок %d, трава %d, горы %d"):format(
+			mapConfig.Seed,
+			renderInfo.Step,
+			mapConfig.Width * mapConfig.Length,
+			renderInfo.Stats.Water,
+			renderInfo.Stats.Snow,
+			renderInfo.Stats.Sand,
+			renderInfo.Stats.Grass,
+			renderInfo.Stats.Mountain
+		)
+		setProgress(1, "Карта готова.")
 
 		task.wait(0.35)
 		tween(loadingTitle, 0.35, { TextTransparency = 1 })
@@ -790,6 +1169,9 @@ local function showLoadingScreen(countryName, difficultyName, seed, bots)
 		tween(progressFill, 0.35, { BackgroundTransparency = 1 })
 		main.Visible = false
 		background.Visible = false
+		setPlayerMovementEnabled(false)
+		setCharacterVisible(false)
+		setGeneratedMapVisible(true)
 		tween(loadingOverlay, 0.45, { BackgroundTransparency = 1 })
 		task.wait(0.45)
 
@@ -802,6 +1184,12 @@ local function showMainMenu()
 	activeTabName = nil
 	main.Visible = true
 	background.Visible = true
+	setGeneratedMapVisible(false)
+	setPlayerMovementEnabled(true)
+	setCharacterVisible(true)
+	if workspace.CurrentCamera then
+		workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
+	end
 	content.Visible = false
 	menuColumn.Visible = true
 	menuDivider.Visible = true
@@ -824,6 +1212,108 @@ local function showMainMenu()
 		button.BackgroundTransparency = 0.82
 	end
 end
+
+mapMenuButton.MouseButton1Click:Connect(function()
+	mapExitConfirm.Visible = true
+end)
+
+exitConfirmCancel.MouseButton1Click:Connect(function()
+	mapExitConfirm.Visible = false
+end)
+
+exitConfirmAccept.MouseButton1Click:Connect(function()
+	mapExitConfirm.Visible = false
+	clearGeneratedMap()
+	showMainMenu()
+end)
+
+nextTurnButton.MouseButton1Click:Connect(function()
+	gameState.Turn += 1
+	if gameState.Turn == 8 then
+		gameState.Technology = "Письменность"
+	elseif gameState.Turn == 14 then
+		gameState.Civic = "Ремесло"
+	elseif gameState.Turn == 22 then
+		gameState.Government = "Автократия"
+	elseif gameState.Turn == 35 then
+		gameState.Era = "Классическая эпоха"
+	end
+
+	gameState.Gold += 1
+	if gameState.Turn % 5 == 0 then
+		gameState.Science += 1
+		gameState.Culture += 1
+	end
+	if gameState.Turn % 7 == 0 then
+		gameState.Faith += 1
+	end
+	if gameState.Turn % 12 == 0 then
+		gameState.DiplomaticFavor += 1
+	end
+	updateStrategyHud()
+end)
+
+player.CharacterAdded:Connect(function()
+	if mapHud.Visible then
+		task.defer(function()
+			setCharacterVisible(false)
+		end)
+	end
+end)
+
+RunService.RenderStepped:Connect(function(deltaTime)
+	if not mapHud.Visible or not generatedMapFolder then
+		return
+	end
+
+	local moveRight = 0
+	local moveForward = 0
+
+	if UserInputService:IsKeyDown(Enum.KeyCode.Left) then
+		moveRight -= 1
+	end
+	if UserInputService:IsKeyDown(Enum.KeyCode.Right) then
+		moveRight += 1
+	end
+	if UserInputService:IsKeyDown(Enum.KeyCode.Up) then
+		moveForward += 1
+	end
+	if UserInputService:IsKeyDown(Enum.KeyCode.Down) then
+		moveForward -= 1
+	end
+
+	if moveRight == 0 and moveForward == 0 then
+		return
+	end
+
+	local camera = workspace.CurrentCamera
+	if not camera then
+		return
+	end
+
+	local right = Vector3.new(camera.CFrame.RightVector.X, 0, camera.CFrame.RightVector.Z)
+	local forward = Vector3.new(camera.CFrame.LookVector.X, 0, camera.CFrame.LookVector.Z)
+	if right.Magnitude > 0 then
+		right = right.Unit
+	end
+	if forward.Magnitude > 0 then
+		forward = forward.Unit
+	end
+
+	local direction = right * moveRight + forward * moveForward
+	if direction.Magnitude > 1 then
+		direction = direction.Unit
+	end
+
+	local speed = math.max(22, mapCameraHeight * 1.15)
+	local nextTarget = mapCameraTarget + direction * speed * deltaTime
+	mapCameraTarget = Vector3.new(
+		math.clamp(nextTarget.X, mapCameraBounds.MinX, mapCameraBounds.MaxX),
+		0,
+		math.clamp(nextTarget.Z, mapCameraBounds.MinZ, mapCameraBounds.MaxZ)
+	)
+	applyMapCamera()
+end)
 
 local function setActiveTab(tabName)
 	activeTabName = tabName
@@ -951,7 +1441,12 @@ local function makeToggle(parent, text, defaultEnabled)
 	return button
 end
 
-local function makeSlider(parent, text, value)
+local function makeSlider(parent, text, value, minValue, maxValue, stepValue, formatter)
+	minValue = minValue or 0
+	maxValue = maxValue or 1
+	stepValue = stepValue or 0.01
+	local currentValue = math.clamp(value or minValue, minValue, maxValue)
+
 	local wrapper = Instance.new("Frame")
 	wrapper.BackgroundTransparency = 1
 	wrapper.Size = UDim2.new(1, 0, 0, 42)
@@ -961,6 +1456,7 @@ local function makeSlider(parent, text, value)
 	label.Size = UDim2.new(0.45, 0, 1, 0)
 
 	local track = Instance.new("Frame")
+	track.Active = true
 	track.BackgroundColor3 = Color3.fromRGB(32, 100, 166)
 	track.BorderSizePixel = 0
 	track.Position = UDim2.new(0.48, 0, 0.5, -4)
@@ -971,27 +1467,108 @@ local function makeSlider(parent, text, value)
 	local fill = Instance.new("Frame")
 	fill.BackgroundColor3 = colors.cyan
 	fill.BorderSizePixel = 0
-	fill.Size = UDim2.new(math.clamp(value, 0, 1), 0, 1, 0)
 	fill.Parent = track
 	addCorner(fill, 3)
 
-	local amount = makeText(wrapper, tostring(math.floor(value * 100)), 14, colors.muted, Enum.Font.SourceSansBold, Enum.TextXAlignment.Right)
+	local knob = Instance.new("Frame")
+	knob.AnchorPoint = Vector2.new(0.5, 0.5)
+	knob.BackgroundColor3 = colors.ivory
+	knob.BorderSizePixel = 0
+	knob.Size = UDim2.fromOffset(14, 14)
+	knob.Parent = track
+	addCorner(knob, 7)
+	addStroke(knob, colors.border, 1, 0.25)
+
+	local amount = makeText(wrapper, "", 14, colors.muted, Enum.Font.SourceSansBold, Enum.TextXAlignment.Right)
 	amount.Position = UDim2.new(0.88, 0, 0, 0)
 	amount.Size = UDim2.new(0.12, 0, 1, 0)
 
-	return wrapper
+	local changedCallbacks = {}
+	local dragging = false
+
+	local function formatValue(numberValue)
+		if formatter then
+			return formatter(numberValue)
+		end
+
+		if minValue == 0 and maxValue == 1 then
+			return tostring(math.floor(numberValue * 100))
+		end
+
+		return tostring(math.floor(numberValue))
+	end
+
+	local function render()
+		local alpha = (currentValue - minValue) / (maxValue - minValue)
+		fill.Size = UDim2.fromScale(alpha, 1)
+		knob.Position = UDim2.fromScale(alpha, 0.5)
+		amount.Text = formatValue(currentValue)
+	end
+
+	local function setValue(newValue, shouldNotify)
+		local stepped = math.floor((newValue - minValue) / stepValue + 0.5) * stepValue + minValue
+		currentValue = math.clamp(stepped, minValue, maxValue)
+		render()
+
+		if shouldNotify then
+			for _, callback in ipairs(changedCallbacks) do
+				callback(currentValue)
+			end
+		end
+	end
+
+	local function setFromInput(inputObject)
+		local trackPosition = track.AbsolutePosition.X
+		local trackWidth = math.max(track.AbsoluteSize.X, 1)
+		local alpha = math.clamp((inputObject.Position.X - trackPosition) / trackWidth, 0, 1)
+		setValue(minValue + (maxValue - minValue) * alpha, true)
+	end
+
+	track.InputBegan:Connect(function(inputObject)
+		if inputObject.UserInputType == Enum.UserInputType.MouseButton1 or inputObject.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			setFromInput(inputObject)
+		end
+	end)
+
+	UserInputService.InputChanged:Connect(function(inputObject)
+		if dragging and (inputObject.UserInputType == Enum.UserInputType.MouseMovement or inputObject.UserInputType == Enum.UserInputType.Touch) then
+			setFromInput(inputObject)
+		end
+	end)
+
+	UserInputService.InputEnded:Connect(function(inputObject)
+		if inputObject.UserInputType == Enum.UserInputType.MouseButton1 or inputObject.UserInputType == Enum.UserInputType.Touch then
+			dragging = false
+		end
+	end)
+
+	render()
+
+	return {
+		Wrapper = wrapper,
+		GetValue = function()
+			return currentValue
+		end,
+		SetValue = function(newValue)
+			setValue(newValue, true)
+		end,
+		OnChanged = function(callback)
+			table.insert(changedCallbacks, callback)
+		end,
+	}
 end
 
 local singleplayer = makePanel(content, "Singleplayer")
 local singleLayout = Instance.new("UIListLayout")
-singleLayout.Padding = UDim.new(0, 14)
+singleLayout.Padding = UDim.new(0, 10)
 singleLayout.SortOrder = Enum.SortOrder.LayoutOrder
 singleLayout.Parent = singleplayer
 makeHeader(singleplayer, "Синглплеер", "Создай цивилизацию, выбери параметры мира и подготовь будущую партию.")
 
 local singleGrid = Instance.new("Frame")
 singleGrid.BackgroundTransparency = 1
-singleGrid.Size = UDim2.new(1, 0, 0, 360)
+singleGrid.Size = UDim2.new(1, 0, 0, 432)
 singleGrid.Parent = singleplayer
 
 local singleLeft = Instance.new("Frame")
@@ -1005,7 +1582,16 @@ singleLeftLayout.SortOrder = Enum.SortOrder.LayoutOrder
 singleLeftLayout.Parent = singleLeft
 
 local countryName = makeField(singleLeft, "Название страны", "Например: Новая Атлантида")
+local countryNameRequired = makeText(singleLeft, "Обязательное поле.", 14, Color3.fromRGB(255, 126, 126), Enum.Font.SourceSansSemibold)
+countryNameRequired.Size = UDim2.new(1, 0, 0, 18)
+countryNameRequired.Visible = false
 local mapSeed = makeField(singleLeft, "Сид карты", "Случайный или свой сид")
+local mapWidthSlider = makeSlider(singleLeft, "Ширина карты", 400, MapGenerator.MinMapSize, MapGenerator.MaxMapSize, 50, function(value)
+	return tostring(math.floor(value))
+end)
+local mapLengthSlider = makeSlider(singleLeft, "Длина карты", 400, MapGenerator.MinMapSize, MapGenerator.MaxMapSize, 50, function(value)
+	return tostring(math.floor(value))
+end)
 local difficulty = makeSelect(singleLeft, "Сложность", {
 	"Поселенец",
 	"Вождь",
@@ -1032,7 +1618,7 @@ addPadding(singleRight, 16, 16, 16, 16)
 local previewTitle = makeText(singleRight, "Готовность партии", 22, colors.gold, Enum.Font.Garamond)
 previewTitle.Size = UDim2.new(1, 0, 0, 28)
 
-local previewText = makeText(singleRight, "Пока мир и ИИ будут добавлены позже, эта вкладка уже собирает все стартовые параметры будущей партии.", 17, colors.muted, Enum.Font.SourceSans)
+local previewText = makeText(singleRight, "Карта создаётся по сиду: вода непроходима, горы непроходимы, песок, трава и снег доступны для хода. По краю мира идёт песок, дальше начинается внешнее море.", 17, colors.muted, Enum.Font.SourceSans)
 previewText.Position = UDim2.new(0, 0, 0, 42)
 previewText.Size = UDim2.new(1, 0, 0, 90)
 previewText.TextYAlignment = Enum.TextYAlignment.Top
@@ -1044,16 +1630,39 @@ saveCountryButton.Size = UDim2.new(1, 0, 0, 46)
 local startGameButton = makeButton(singleRight, "Начать игру", 46, colors.cyan)
 startGameButton.Position = UDim2.new(0, 0, 1, -46)
 startGameButton.Size = UDim2.new(1, 0, 0, 46)
+local startGameGradient = startGameButton:FindFirstChildOfClass("UIGradient")
+local startGameNormalGradient = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(62, 162, 224)),
+	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(40, 124, 193)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(28, 92, 153)),
+})
+local startGameErrorGradient = ColorSequence.new({
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(210, 78, 78)),
+	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(166, 48, 56)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(119, 34, 44)),
+})
 
 local singleStatus = makeText(singleplayer, "", 16, colors.green, Enum.Font.SourceSansSemibold)
-singleStatus.Size = UDim2.new(1, 0, 0, 28)
+singleStatus.Size = UDim2.new(1, 0, 0, 24)
 singleStatus.TextTransparency = 1
+
+local function setCountryNameError(hasError)
+	countryNameRequired.Visible = hasError
+	startGameButton.BackgroundColor3 = hasError and Color3.fromRGB(150, 43, 52) or colors.panelDeep
+	startGameButton.TextColor3 = hasError and Color3.fromRGB(255, 230, 230) or colors.ivory
+	if startGameGradient then
+		startGameGradient.Color = hasError and startGameErrorGradient or startGameNormalGradient
+	end
+end
+
+countryName:GetPropertyChangedSignal("Text"):Connect(function()
+	if countryName.Text ~= "" then
+		setCountryNameError(false)
+	end
+end)
 
 local function readSingleplayerSetup()
 	local name = countryName.Text
-	if name == "" then
-		name = "Безымянная цивилизация"
-	end
 
 	local seed = mapSeed.Text
 	if seed == "" then
@@ -1061,20 +1670,33 @@ local function readSingleplayerSetup()
 		mapSeed.Text = seed
 	end
 
-	return name, seed
+	local mapWidth = MapGenerator.ClampDimension(mapWidthSlider.GetValue())
+	local mapLength = MapGenerator.ClampDimension(mapLengthSlider.GetValue())
+
+	return name, seed, mapWidth, mapLength
 end
 
 saveCountryButton.MouseButton1Click:Connect(function()
-	local name, seed = readSingleplayerSetup()
-	singleStatus.Text = ("Страна \"%s\" сохранена. Сложность: %s, сид: %s, боты: %s."):format(name, difficulty.GetValue(), seed, botCount.GetValue())
+	local name, seed, mapWidth, mapLength = readSingleplayerSetup()
+	singleStatus.Text = ("Страна \"%s\" сохранена. Карта: %dx%d, сложность: %s, сид: %s, боты: %s."):format(name, mapWidth, mapLength, difficulty.GetValue(), seed, botCount.GetValue())
 	singleStatus.TextTransparency = 0
 end)
 
 startGameButton.MouseButton1Click:Connect(function()
-	local name, seed = readSingleplayerSetup()
-	singleStatus.Text = ("Запуск партии: %s | %s | сид %s | боты: %s."):format(name, difficulty.GetValue(), seed, botCount.GetValue())
+	local name, seed, mapWidth, mapLength = readSingleplayerSetup()
+	if name == "" then
+		setCountryNameError(true)
+		singleStatus.Text = "Введите название государства перед стартом."
+		singleStatus.TextColor3 = Color3.fromRGB(255, 126, 126)
+		singleStatus.TextTransparency = 0
+		return
+	end
+
+	setCountryNameError(false)
+	singleStatus.TextColor3 = colors.green
+	singleStatus.Text = ("Запуск партии: %s | %dx%d | %s | сид %s | боты: %s."):format(name, mapWidth, mapLength, difficulty.GetValue(), seed, botCount.GetValue())
 	singleStatus.TextTransparency = 0
-	showLoadingScreen(name, difficulty.GetValue(), seed, botCount.GetValue())
+	showLoadingScreen(name, difficulty.GetValue(), seed, botCount.GetValue(), mapWidth, mapLength)
 end)
 
 local multiplayer = makePanel(content, "Multiplayer")
